@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0e13" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>HablaNext — Spanish next-word coach</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon.svg" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img class="logo" src="./icon.svg" alt="" />
+      <div>
+        <h1>HablaNext</h1>
+        <div class="sub">Live Spanish next-word + sentence coach</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="icon-btn" id="helpBtn" type="button">Help</button>
+      <button class="icon-btn" id="settingsBtn" type="button">Data</button>
+    </div>
+  </header>
+
+  <section class="live-card">
+    <div class="label">What you just said</div>
+    <div class="heard" id="heard"></div>
+    <div class="meta">
+      <div id="status"><span class="pulse" id="pulse"></span>Mic idle</div>
+      <div id="count"></div>
+    </div>
+  </section>
+
+  <section class="controls">
+    <button class="listen idle" id="listen" type="button">Listen</button>
+    <select id="dialect" aria-label="Spanish variety">
+      <option value="es-MX">Mexico</option>
+      <option value="es-US">US Spanish</option>
+      <option value="es-ES">Spain</option>
+      <option value="es-CO">Colombia</option>
+      <option value="es-AR">Argentina</option>
+      <option value="es-CL">Chile</option>
+      <option value="es-PE">Peru</option>
+    </select>
+  </section>
+
+  <p class="warn" id="warn" style="display:none"></p>
+
+  <section class="section">
+    <h2>Possible next words</h2>
+    <div class="chips" id="words"></div>
+  </section>
+
+  <section class="section">
+    <h2>Possible sentence outcomes</h2>
+    <div class="sentences" id="sentences"></div>
+  </section>
+
+  <div class="row">
+    <button class="ghost" id="clearHeard" type="button">Clear transcript</button>
+  </div>
+
+  <section class="drawer help" id="help">
+    <p><strong>What this is.</strong> Keep this page open while you try to speak Spanish. It listens through the phone mic — or AirPods, if those are the iPhone’s current microphone — and guesses the next word plus a few full sentence endings.</p>
+    <p><strong>How to use it.</strong> Add this page to your Home Screen (Share → Add to Home Screen in Safari). Tap Listen, grant the microphone, start talking. Glance at the chips when you stall. Tap a word to lock it in; the model then predicts from there.</p>
+    <p><strong>Learning.</strong> Every finished phrase is stored only on this device. Predictions marked “from your speech” come from your own patterns, blended with a built-in conversational Spanish model. Export the data file if you switch phones.</p>
+    <p><strong>Limits.</strong> This is a web app, not an App Store app. iOS will stop listening if you lock the phone or switch away. Safari speech recognition can pause after silence; the app restarts it. It cannot hear you in another app at the same time. Predictions start useful immediately and get more “you” after a few days of talking into it.</p>
+  </section>
+
+  <section class="drawer help" id="settings">
+    <p>Personal speech data stays in this browser. Nothing is uploaded.</p>
+    <div class="row">
+      <button class="ghost" id="exportBtn" type="button">Export learning</button>
+      <label class="ghost">Import<input id="importFile" type="file" accept="application/json" hidden /></label>
+      <button class="ghost" id="resetBtn" type="button">Reset learning</button>
+    </div>
+  </section>
+
+  <script src="./data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

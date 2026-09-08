@@ -1,0 +1,19 @@
+{
+  "name": "HablaNext — Spanish next-word coach",
+  "short_name": "HablaNext",
+  "description": "Live Spanish next-word and sentence predictions while you speak.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0e1116",
+  "theme_color": "#0e1116",
+  "lang": "en",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
