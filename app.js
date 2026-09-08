@@ -1,7 +1,37 @@
 (() => {
   const DATA = window.HABLA_DATA;
-  const STORE_KEY = "habla-next-model-v1";
-  const SETTINGS_KEY = "habla-next-settings-v1";
+  const CFG = Object.assign({
+    storeKey: "habla-next-model-v1",
+    settingsKey: "habla-next-settings-v1",
+    defaultLang: "es-MX",
+    silenceMs: 3000,
+    placeholder: "Tap Listen and start speaking Spanish.",
+    listen: "Listen",
+    listening: "Listening… tap to pause",
+    micOn: "Using the phone or AirPods mic",
+    micOff: "Mic idle",
+    learnedTag: "from your speech",
+    learnedSuffix: " · learned",
+    emptyWords: "Start a sentence to see next-word guesses.",
+    noSpeech: "This browser has no speech recognition. Use Safari on iPhone or Chrome on Android / desktop.",
+    micBlocked: "Microphone permission was blocked. Enable it for this page in Settings.",
+    importFail: "Could not import that file.",
+    resetConfirm: "Clear all learned speech patterns on this device?",
+    statsNone: "No personal phrases stored yet",
+    statsOne: "1 phrase learned on this phone",
+    statsMany: (n) => `${n} phrases learned on this phone`,
+    exportName: "habla-next-learning.json",
+    fromPast: "From your past speech",
+    possible: "Possible continuation",
+    articleStrip: /^(el|la|los|las|un|una|unos|unas|the|a|an)\s+/,
+    starters: [
+      ["Hola, ¿qué tal?", "Hi, how's it going?"],
+      ["¿Me puedes ayudar, por favor?", "Can you help me, please?"],
+      ["No entiendo. ¿Puedes repetir?", "I don't understand. Can you repeat?"]
+    ]
+  }, window.HABLA_CONFIG || {});
+  const STORE_KEY = CFG.storeKey;
+  const SETTINGS_KEY = CFG.settingsKey;
 
   const els = {
     heard: document.getElementById("heard"),
@@ -33,10 +63,11 @@
   let finalText = "";
   let interimText = "";
   let restartTimer = null;
+  let silenceTimer = null;
 
   const model = loadModel();
   const settings = loadSettings();
-  els.dialect.value = settings.dialect || "es-MX";
+  els.dialect.value = settings.dialect || CFG.defaultLang;
   renderStats();
 
   function loadModel() {
@@ -70,9 +101,9 @@
   }
 
   function renderStats() {
-    els.count.textContent = model.uttered
-      ? `${model.uttered} phrase${model.uttered === 1 ? "" : "s"} learned on this phone`
-      : "No personal phrases stored yet";
+    els.count.textContent = !model.uttered
+      ? CFG.statsNone
+      : model.uttered === 1 ? CFG.statsOne : CFG.statsMany(model.uttered);
   }
 
   function normalize(s) {
@@ -90,7 +121,7 @@
   function gloss(word) {
     const w = normalize(word);
     if (DATA.gloss[w]) return DATA.gloss[w];
-    const stripped = w.replace(/^(el|la|los|las|un|una|unos|unas)\s+/, "");
+    const stripped = w.replace(CFG.articleStrip, "");
     if (DATA.gloss[stripped]) return DATA.gloss[stripped];
     return "—";
   }
@@ -183,7 +214,7 @@
 
     if (norm) {
       const mined = model.phrases.filter((p) => p.startsWith(norm) && p.length > norm.length + 2);
-      mined.slice(-5).reverse().forEach((p) => add(capitalize(p), "From your past speech", "you"));
+      mined.slice(-5).reverse().forEach((p) => add(capitalize(p), CFG.fromPast, "you"));
     }
 
     const keys = [norm, prefix2, prefix1];
@@ -196,14 +227,12 @@
     if (norm && words.length) {
       for (const w of words) {
         const draft = capitalize((norm + " " + w.word).trim()) + "…";
-        add(draft, "Possible continuation", w.source);
+        add(draft, CFG.possible, w.source);
       }
     }
 
     if (!out.length) {
-      add("Hola, ¿qué tal?", "Hi, how's it going?", "base");
-      add("¿Me puedes ayudar, por favor?", "Can you help me, please?", "base");
-      add("No entiendo. ¿Puedes repetir?", "I don't understand. Can you repeat?", "base");
+      (CFG.starters || []).forEach(([a, b]) => add(a, b, "base"));
     }
     return out.slice(0, 4);
   }
@@ -217,7 +246,7 @@
     const final = finalText ? `<span class="final">${escapeHtml(finalText)}</span> ` : "";
     const interim = interimText ? `<span class="interim">${escapeHtml(interimText)}</span>` : "";
     const cursor = listening ? `<span class="cursor"></span>` : "";
-    els.heard.innerHTML = final + interim + cursor || `<span class="interim">Tap Listen and start speaking Spanish.</span>`;
+    els.heard.innerHTML = final + interim + cursor || `<span class="interim">${CFG.placeholder}</span>`;
   }
 
   function escapeHtml(s) {
@@ -230,13 +259,13 @@
     const context = (finalText + " " + interimText).trim();
     const words = predictWords(context);
     if (!words.length) {
-      els.words.innerHTML = `<div class="empty">Start a sentence to see next-word guesses.</div>`;
+      els.words.innerHTML = `<div class="empty">${CFG.emptyWords}</div>`;
     } else {
       els.words.innerHTML = words.map((w) => `
         <button class="chip ${w.source === "you" ? "learned" : ""}" data-word="${escapeHtml(w.word)}">
           <div class="es">${escapeHtml(w.word)}</div>
           <div class="en">${escapeHtml(gloss(w.word))}</div>
-          ${w.source === "you" ? `<div class="tag">from your speech</div>` : ""}
+          ${w.source === "you" ? `<div class="tag">${CFG.learnedTag}</div>` : ""}
         </button>
       `).join("");
     }
@@ -245,19 +274,19 @@
     els.sentences.innerHTML = sents.map((s) => `
       <button class="sentence">
         <div class="es">${escapeHtml(s.es)}</div>
-        <div class="en">${escapeHtml(s.en)}${s.source === "you" ? " · learned" : ""}</div>
+        <div class="en">${escapeHtml(s.en)}${s.source === "you" ? CFG.learnedSuffix : ""}</div>
       </button>
     `).join("");
   }
 
   function setListeningUI(on) {
     listening = on;
-    els.listen.textContent = on ? "Listening… tap to pause" : "Listen";
+    els.listen.textContent = on ? CFG.listening : CFG.listen;
     els.listen.classList.toggle("hot", on);
     els.pulse.classList.toggle("on", on);
     els.status.innerHTML = on
-      ? `<span class="pulse on"></span>Using the phone or AirPods mic`
-      : `<span class="pulse"></span>Mic idle`;
+      ? `<span class="pulse on"></span>${CFG.micOn}`
+      : `<span class="pulse"></span>${CFG.micOff}`;
     renderHeard();
   }
 
@@ -277,7 +306,7 @@
   function attachRecognition() {
     if (!SpeechRec) {
       els.warn.style.display = "block";
-      els.warn.textContent = "This browser has no speech recognition. Use Safari on iPhone or Chrome on Android / desktop.";
+      els.warn.textContent = CFG.noSpeech;
       return null;
     }
     const rec = new SpeechRec();
@@ -304,12 +333,16 @@
       interimText = interim;
       renderHeard();
       renderPredictions();
+      armSilenceTimer();
     };
+
+    rec.onspeechend = () => armSilenceTimer();
+    rec.onsoundend = () => armSilenceTimer();
 
     rec.onerror = (e) => {
       if (e.error === "not-allowed") {
         els.warn.style.display = "block";
-        els.warn.textContent = "Microphone permission was blocked. Enable it for this page in Settings.";
+        els.warn.textContent = CFG.micBlocked;
         stopListening();
       }
     };
@@ -329,20 +362,39 @@
     return rec;
   }
 
+  function resetContext() {
+    finalText = "";
+    interimText = "";
+    renderHeard();
+    renderPredictions();
+  }
+
+  function armSilenceTimer() {
+    clearTimeout(silenceTimer);
+    if (!shouldListen) return;
+    silenceTimer = setTimeout(() => {
+      if (!shouldListen) return;
+      resetContext();
+    }, CFG.silenceMs);
+  }
+
   function startListening() {
     if (!recognition) recognition = attachRecognition();
     if (!recognition) return;
     recognition.lang = els.dialect.value;
+    resetContext();
     shouldListen = true;
     requestWakeLock();
     try { recognition.start(); }
     catch (_) { /* already started */ }
     setListeningUI(true);
+    armSilenceTimer();
   }
 
   function stopListening() {
     shouldListen = false;
     clearTimeout(restartTimer);
+    clearTimeout(silenceTimer);
     try { recognition && recognition.stop(); } catch (_) {}
     setListeningUI(false);
     releaseWakeLock();
@@ -371,6 +423,7 @@
     learnUtterance(finalText);
     renderHeard();
     renderPredictions();
+    armSilenceTimer();
   });
 
   els.sentences.addEventListener("click", (e) => {
@@ -382,6 +435,7 @@
     learnUtterance(line);
     renderHeard();
     renderPredictions();
+    armSilenceTimer();
   });
 
   els.helpBtn.addEventListener("click", () => {
@@ -398,7 +452,7 @@
     const blob = new Blob([JSON.stringify(model, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "habla-next-learning.json";
+    a.download = CFG.exportName;
     a.click();
   });
 
@@ -415,12 +469,12 @@
       renderPredictions();
     } catch (_) {
       els.warn.style.display = "block";
-      els.warn.textContent = "Could not import that file.";
+      els.warn.textContent = CFG.importFail;
     }
   });
 
   els.resetBtn.addEventListener("click", () => {
-    if (!confirm("Clear all learned speech patterns on this device?")) return;
+    if (!confirm(CFG.resetConfirm)) return;
     model.bigrams = {};
     model.trigrams = {};
     model.phrases = [];
