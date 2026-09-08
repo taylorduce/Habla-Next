@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0e13" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>SpeakNext — entrenador de inglés</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="../icon.svg" />
+  <link rel="apple-touch-icon" href="../icon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <img class="logo" src="../icon.svg" alt="" />
+      <div>
+        <h1>SpeakNext</h1>
+        <div class="sub">Siguiente palabra en inglés + frases · se reinicia a los 3s de silencio</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="icon-btn" id="helpBtn" type="button">Ayuda</button>
+      <button class="icon-btn" id="settingsBtn" type="button">Datos</button>
+    </div>
+  </header>
+
+  <section class="live-card">
+    <div class="label">Lo que acabas de decir</div>
+    <div class="heard" id="heard"></div>
+    <div class="meta">
+      <div id="status"><span class="pulse" id="pulse"></span>Micrófono inactivo</div>
+      <div id="count"></div>
+    </div>
+  </section>
+
+  <section class="controls">
+    <button class="listen idle" id="listen" type="button">Escuchar</button>
+    <select id="dialect" aria-label="Variedad de inglés">
+      <option value="en-US">Estados Unidos</option>
+      <option value="en-GB">Reino Unido</option>
+      <option value="en-AU">Australia</option>
+      <option value="en-IE">Irlanda</option>
+    </select>
+  </section>
+
+  <p class="warn" id="warn" style="display:none"></p>
+
+  <section class="section">
+    <h2>Posibles siguientes palabras</h2>
+    <div class="chips" id="words"></div>
+  </section>
+
+  <section class="section">
+    <h2>Posibles finales de la frase</h2>
+    <div class="sentences" id="sentences"></div>
+  </section>
+
+  <div class="row">
+    <button class="ghost" id="clearHeard" type="button">Borrar texto</button>
+  </div>
+
+  <section class="drawer help" id="help">
+    <p><strong>Qué es.</strong> Déjala abierta mientras intentas hablar inglés. Escucha el micrófono del teléfono o los AirPods y sugiere la siguiente palabra, con la traducción al español debajo, y algunos finales de frase.</p>
+    <p><strong>Cómo usarla.</strong> En Safari: Compartir → Añadir a pantalla de inicio. Toca Escuchar, permite el micrófono y habla. Si te trabas, mira las sugerencias. Tras 3 segundos de silencio, empieza una frase nueva. Si detienes y vuelves a tocar Escuchar, también se reinicia.</p>
+    <p><strong>Aprendizaje.</strong> Cada frase terminada se guarda solo en este teléfono. Las marcas “de tu forma de hablar” vienen de tus propios patrones.</p>
+    <p><a href="../index.html" style="color:#3ee0b4">Versión para aprender español</a></p>
+  </section>
+
+  <section class="drawer help" id="settings">
+    <p>Tus datos de voz se quedan en este navegador. No se suben a internet.</p>
+    <div class="row">
+      <button class="ghost" id="exportBtn" type="button">Exportar</button>
+      <label class="ghost">Importar<input id="importFile" type="file" accept="application/json" hidden /></label>
+      <button class="ghost" id="resetBtn" type="button">Borrar aprendizaje</button>
+    </div>
+  </section>
+
+  <script>
+    window.HABLA_CONFIG = {
+      storeKey: "speak-next-en-model-v1",
+      settingsKey: "speak-next-en-settings-v1",
+      defaultLang: "en-US",
+      silenceMs: 3000,
+      placeholder: "Toca Escuchar y empieza a hablar en inglés.",
+      listen: "Escuchar",
+      listening: "Escuchando… toca para pausar",
+      micOn: "Usando el micrófono del teléfono o AirPods",
+      micOff: "Micrófono inactivo",
+      learnedTag: "de tu forma de hablar",
+      learnedSuffix: " · aprendido",
+      emptyWords: "Empieza una frase para ver la siguiente palabra.",
+      noSpeech: "Este navegador no reconoce voz. Usa Safari en iPhone o Chrome en Android.",
+      micBlocked: "El micrófono está bloqueado. Actívalo para esta página en Ajustes.",
+      importFail: "No se pudo importar ese archivo.",
+      resetConfirm: "¿Borrar todos los patrones aprendidos en este teléfono?",
+      statsNone: "Aún no hay frases personales",
+      statsOne: "1 frase aprendida en este teléfono",
+      statsMany: (n) => n + " frases aprendidas en este teléfono",
+      exportName: "speak-next-learning.json",
+      fromPast: "De tu forma de hablar",
+      possible: "Posible continuación",
+      starters: [
+        ["Hello, how are you?", "Hola, ¿cómo estás?"],
+        ["Can you help me, please?", "¿Puedes ayudarme, por favor?"],
+        ["I don't understand. Can you repeat?", "No entiendo. ¿Puedes repetir?"]
+      ]
+    };
+  </script>
+  <script src="./data.js"></script>
+  <script src="../app.js"></script>
+</body>
+</html>
